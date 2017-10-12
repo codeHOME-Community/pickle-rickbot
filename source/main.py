@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import logging
 import asyncio
+import json
+import website_integration
 
 # BOT LOGGING
 
@@ -24,6 +26,21 @@ async def auto_bump_hound():
     while not bot.is_closed:
         await bot.send_message(channel, "=bump")
         await asyncio.sleep(14400)  # task runs every 60 seconds
+
+async def website_integration():
+    await bot.wait_until_ready()
+    while not bot.is_closed:
+        # Check here for messages
+        with open("pickle.json", "r") as f:
+            com = json.loads(f.read())
+        if len(com['queue']) > 0:
+            # We have new tasks
+            for task in com['queue']:
+                website_integration.handle(task)
+        com['queue'] = []
+        with open("pickle.json", "w") as f:
+            f.write(json.dumps(com))
+        await asyncio.sleep(0.2)
 
 async def auto_bump_dlm():
     await bot.wait_until_ready()
@@ -91,4 +108,5 @@ if __name__ == "__main__":
 
     bot.loop.create_task(auto_bump_hound())
     bot.loop.create_task(auto_bump_dlm())
+    bot.loop.create_task(website_integration())
     bot.run('')
