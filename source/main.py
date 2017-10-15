@@ -82,7 +82,7 @@ async def on_member_join(member):
     await bot.send_message(member, wpm)
 
 
-# Check Messages and Award Scales
+# Allow Events to be processed on message, then process commands.
 @bot.event
 async def on_message(message):
 
