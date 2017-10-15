@@ -1,6 +1,18 @@
 import asyncio
+from sys import maxsize as int_maxsize, stderr
+from platform import architecture, system
+
 import discord
 from discord.ext import commands
+
+def arch_detect():
+    # OSX sometimes doesn't correctly set the architecture as
+    # 64bit if run from a Universal binary, so fallback on int size
+    # int size can't be used alone as some windows AMD64 builds
+    # still have 32-bit int limits!
+    if architecture()[0] == '64bit' or int_maxsize > 2**32:
+        return 64
+    return 32
 
 if not discord.opus.is_loaded():
     # the 'opus' library here is opus.dll on windows
@@ -8,7 +20,11 @@ if not discord.opus.is_loaded():
     # you should replace this with the location the
     # opus library is located in and with the proper filename.
     # note that on windows this DLL is automatically provided for you
-    discord.opus.load_opus('includes\libopus.so')
+    if system() == 'Linux' and arch_detect() == 64:
+        discord.opus.load_opus('includes\libopus.so')
+    else:
+        print("Couldn't load Opus library, it's missing on your platform.",
+              file=stderr)
 
 
 class VoiceEntry:
